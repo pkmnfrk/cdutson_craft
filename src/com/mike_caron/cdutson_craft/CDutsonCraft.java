@@ -19,8 +19,7 @@ public class CDutsonCraft extends JavaPlugin implements Listener
         super.onEnable();
 
         logger = this.getLogger();
-
-        Bukkit.addRecipe(EmeraldSword.getRecipe(this));
+        CustomSword.registerItems(this);
         Bukkit.getPluginManager().registerEvents(this, this);
     }
 
@@ -29,18 +28,18 @@ public class CDutsonCraft extends JavaPlugin implements Listener
     {
         super.onDisable();
 
-        Bukkit.removeRecipe(EmeraldSword.getKey(this));
+        CustomSword.unregisterItems(this);
     }
 
     @EventHandler
     public void onPrepareAnvil(PrepareAnvilEvent event)
     {
-        EmeraldSword.checkEvent(event);
+        CustomSword.checkAllEvents(event);
     }
 
     @EventHandler
     public void onSwordDamage(EntityDamageByEntityEvent event)
     {
-        EmeraldSword.checkEvent(event);
+        CustomSword.checkAllEvents(event);
     }
 }

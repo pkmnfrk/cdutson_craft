@@ -1,5 +1,6 @@
 package com.mike_caron.cdutson_craft;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -20,40 +21,77 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class EmeraldSword
+public class CustomSword
 {
-    public static final int MAX_DURABILITY = 3000;
-    public static final int REPAIR_DURABILITY = MAX_DURABILITY / 4;
-    public static final int MODEL_DATA = 700001;
+    public static CustomSword emeraldSword;
 
-    public static ItemStack get()
+    private final String key;
+    private final String name;
+    private final ChatColor color;
+    private final int customModelData;
+    private final int maxDurability;
+
+    public CustomSword(String key, String name, ChatColor color, int customModelData, int maxDurability)
+    {
+        this.key = key;
+        this.name = name;
+        this.color = color;
+        this.customModelData = customModelData;
+        this.maxDurability = maxDurability;
+    }
+
+    public static void registerItems(CDutsonCraft plugin)
+    {
+        emeraldSword = new CustomSword("emerald_sword", "Emerald Sword", ChatColor.GREEN, 700001, 3000);
+
+        Bukkit.addRecipe(emeraldSword.getRecipe(plugin));
+    }
+
+    public static void unregisterItems(CDutsonCraft plugin)
+    {
+        Bukkit.removeRecipe(emeraldSword.getKey(plugin));
+
+        emeraldSword = null;
+    }
+
+    public static boolean checkAllEvents(EntityDamageByEntityEvent event)
+    {
+        return emeraldSword.checkEvent(event);
+    }
+
+    public static boolean checkAllEvents(PrepareAnvilEvent event)
+    {
+        return emeraldSword.checkEvent(event);
+    }
+
+    public ItemStack get()
     {
         ItemStack ret = new ItemStack(Material.DIAMOND_SWORD);
         Damageable meta = (Damageable) ret.getItemMeta();
         assert meta != null;
 
-        meta.setDisplayName(ChatColor.GREEN + "Emerald Sword");
+        meta.setDisplayName(this.color + this.name);
         meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
         meta.setUnbreakable(true);
-        meta.setCustomModelData(MODEL_DATA);
+        meta.setCustomModelData(this.customModelData);
         updateLore(meta);
         ret.setItemMeta(meta);
         return ret;
     }
 
-    public static void updateLore(Damageable meta)
+    public void updateLore(Damageable meta)
     {
         List<String> lore = new ArrayList<>();
-        lore.add("Durability: " + (MAX_DURABILITY - meta.getDamage()) + "/" + MAX_DURABILITY);
+        lore.add("Durability: " + (maxDurability - meta.getDamage()) + "/" + maxDurability);
         meta.setLore(lore);
     }
 
-    public static NamespacedKey getKey(CDutsonCraft plugin)
+    public NamespacedKey getKey(CDutsonCraft plugin)
     {
-        return new NamespacedKey(plugin, "emerald_sword");
+        return new NamespacedKey(plugin, key);
     }
 
-    public static Recipe getRecipe(CDutsonCraft plugin)
+    public Recipe getRecipe(CDutsonCraft plugin)
     {
         ItemStack emerald_sword = get();
         ShapedRecipe recipe = new ShapedRecipe(getKey(plugin), emerald_sword);
@@ -64,7 +102,7 @@ public class EmeraldSword
         return recipe;
     }
 
-    public static boolean checkEvent(EntityDamageByEntityEvent event)
+    public boolean checkEvent(EntityDamageByEntityEvent event)
     {
         //CDutsonCraft.logger.info("checking damage event");
         if (event.getDamager() instanceof Player player)
@@ -75,12 +113,12 @@ public class EmeraldSword
             {
                 // CDutsonCraft.logger.info("it's a diamond sword!");
                 Damageable meta = (Damageable) weapon.getItemMeta();
-                if (meta != null && meta.hasCustomModelData() && meta.getCustomModelData() == MODEL_DATA)
+                if (meta != null && meta.hasCustomModelData() && meta.getCustomModelData() == customModelData)
                 {
                     //  CDutsonCraft.logger.info("It's the emerald sword!");
                     meta.setDamage(meta.getDamage() + 1);
 
-                    if (meta.getDamage() >= MAX_DURABILITY)
+                    if (meta.getDamage() >= maxDurability)
                     {
                         weapon = null;
                     }
@@ -99,16 +137,16 @@ public class EmeraldSword
         return false;
     }
 
-    private static int combineDamage(Damageable meta1, Damageable meta2)
+    private int combineDamage(Damageable meta1, Damageable meta2)
     {
-        int dur1 = MAX_DURABILITY - meta1.getDamage();
-        int dur2 = MAX_DURABILITY - meta2.getDamage();
+        int dur1 = maxDurability - meta1.getDamage();
+        int dur2 = maxDurability - meta2.getDamage();
 
         int totalDur = (int) ((dur1 + dur2) * 1.12);
-        return MAX_DURABILITY - Math.min(totalDur, MAX_DURABILITY);
+        return maxDurability - Math.min(totalDur, maxDurability);
     }
 
-    private static int combineEnchantements(ItemStack target, ItemMeta resultMeta, ItemStack sacrifice)
+    private int combineEnchantements(ItemStack target, ItemMeta resultMeta, ItemStack sacrifice)
     {
         ItemMeta meta1 = target.getItemMeta();
         assert meta1 != null;
@@ -188,28 +226,28 @@ public class EmeraldSword
 
         levels1.forEach((enchantment, integer) -> resultMeta.addEnchant(enchantment, integer, true));
 
-        CDutsonCraft.logger.info("Resulting meta: " + resultMeta);
+        //CDutsonCraft.logger.info("Resulting meta: " + resultMeta);
         return cost;
     }
 
-    public static boolean checkEvent(PrepareAnvilEvent event)
+    public boolean checkEvent(PrepareAnvilEvent event)
     {
-        CDutsonCraft.logger.info("Anvil event");
+        //CDutsonCraft.logger.info("Anvil event");
         ItemStack firstItem = event.getInventory().getItem(0);
         ItemStack secondItem = event.getInventory().getItem(1);
         if (firstItem != null && firstItem.getType() == Material.DIAMOND_SWORD)
         {
             Damageable meta = (Damageable) firstItem.getItemMeta();
-            if (meta != null && meta.hasCustomModelData() && meta.getCustomModelData() == MODEL_DATA)
+            if (meta != null && meta.hasCustomModelData() && meta.getCustomModelData() == customModelData)
             {
                 if (secondItem != null)
                 {
                     if (secondItem.getType() == Material.EMERALD && meta.getDamage() > 0)
                     {
                         ItemStack result = firstItem.clone();
-                        int consumedItems = (meta.getDamage() / REPAIR_DURABILITY) + 1;
+                        int consumedItems = (meta.getDamage() / (maxDurability / 4)) + 1;
 
-                        meta.setDamage(Math.max(0, meta.getDamage() - consumedItems * REPAIR_DURABILITY));
+                        meta.setDamage(Math.max(0, meta.getDamage() - consumedItems * (maxDurability / 4)));
                         updateLore(meta);
                         result.setItemMeta(meta);
                         event.setResult(result);
@@ -219,7 +257,7 @@ public class EmeraldSword
                     else if (secondItem.getType() == Material.DIAMOND_SWORD)
                     {
                         Damageable meta2 = (Damageable) secondItem.getItemMeta();
-                        if (meta2 != null && meta2.hasCustomModelData() && meta2.getCustomModelData() == MODEL_DATA)
+                        if (meta2 != null && meta2.hasCustomModelData() && meta2.getCustomModelData() == customModelData)
                         {
                             ItemStack result = firstItem.clone();
                             Damageable resultMeta = meta.clone();
