@@ -1,0 +1,16 @@
+# java
+target
+
+# minecraft server
+cache
+logs
+plugins
+world
+world_nether
+world_the_end
+.console_history
+eula.txt
+/*.json
+/*.yml
+*.jar
+*.properties
